@@ -1,27 +1,12 @@
-﻿using Application.Commons.Extensions;
-using Application.UseCases.ExecuteExpression.Abstractions;
-using Application.UseCases.ExecuteExpression.Extensions;
-using Microsoft.Extensions.DependencyInjection;
+﻿[assembly: ExcludeFromCodeCoverage]
 
-namespace Worker; 
+var services = new ServiceCollection()
+    .InstallServices();
 
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        Console.WriteLine("Initializing...");
+var useCase = services
+    .GetService<IExecuteExpressionUseCase>();
 
-        var services = new ServiceCollection()
-            .InstallServices();
+var input = args.ToInput();
+var output = await useCase.Execute(input);
 
-        var useCase = services
-            .GetService<IExecuteExpressionUseCase>();
-
-        Console.WriteLine("Executing Expression...");
-
-        var input = args.ToInput();
-        var output = await useCase.Execute(input);
-
-        Console.WriteLine($"Expression Output: {output.Value}");
-    }
-}
+Console.WriteLine($"Expression Output: {output.Value}");
