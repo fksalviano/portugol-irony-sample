@@ -27,7 +27,7 @@ public class ExecuteExpressionTests
         var input = GetInput(expression);
 
         //Act
-        var result = await _sut.Execute(input);
+        var result = await _sut.ExecuteAsync(input);
 
         //Assert
         result.Value.Should().Be(expected);
@@ -54,7 +54,7 @@ public class ExecuteExpressionTests
         var input = GetInput(expression);
 
         //Act
-        var result = await _sut.Execute(input);
+        var result = await _sut.ExecuteAsync(input);
 
         //Assert
         result.Value.Should().Be(expected);
@@ -62,41 +62,46 @@ public class ExecuteExpressionTests
 
     private static object[] GetLogicalData() => new object[]
     {
-        new object[] {@"SE 1 > 0
-                        E 2 > 1
-                        E 1 = 1
-                        E 3 >= 2
-                        E 4 >= 4
-                        E 4 <= 4
-                        E 5 <> 4
-                        E (1 + 1 = 2) ENTAO
-                            30000
-                        SENAO
-                            60000", 30000},
+        new object[] {@"
+            SE 1 > 0
+            E 2 > 1
+            E 1 = 1
+            E 3 >= 2
+            E 4 >= 4
+            E 4 <= 4
+            E 5 <> 4
+            E (1 + 1 = 2) ENTAO
+                30000
+            SENAO
+                60000", 30000},
 
-        new object[] {@"SE 1 > 1
-                        OU -2 > -1 ENTAO
-                            30000
-                        SENAO
-                            60000", 60000},
+        new object[] {@"
+            SE 1 > 1
+            OU -2 > -1 ENTAO
+                30000
+            SENAO
+                60000", 60000},
 
-        new object[] {@"SE 1 < 0 e 2 < 1
-                        ENTAO 30000
-                        SENAO 60000", 60000},
+        new object[] {@"
+            SE 1 < 0 e 2 < 1
+            ENTAO 30000
+            SENAO 60000", 60000},
 
-        new object[] {@"/*Bloco de comentário*/
-                        SE 1 < 0 e 2 < 1 ENTAO
-                            30000
-                        SENAO
-                            60000", 60000},
+        new object[] {@"
+            /*Bloco de comentário*/
+            SE 1 < 0 e 2 < 1 ENTAO
+                30000
+            SENAO
+                60000", 60000},
 
-        new object[] {@"SE 1 < 0 e 2 < 1 ENTAO
-                            30000
-                        SENAO
-                            SE (2 + 2) > 3 ENTAO
-                                27
-                            SENAO
-                                28", 27}
+        new object[] {@"
+            SE 1 < 0 e 2 < 1 ENTAO
+                30000
+            SENAO
+                SE (2 + 2) > 3 ENTAO
+                    27
+                SENAO
+                    28", 27}
     };
 
     
@@ -104,24 +109,40 @@ public class ExecuteExpressionTests
     public async Task ShouldExecuteNestedLogicalExpressions()
     {
         //Arrange
-        var expression = @"SE 2 = 1 + 1 ENTAO
-                            SE  5 = 3 + 2 ENTAO
-                                SE 8 = 4 + 4 ENTAO
-                                    2000
-                                SENAO
-                                    0
-                            SENAO
-                                0
-                        SENAO
-                            0";
+        var expression = 
+            @"SE 2 = 1 + 1 ENTAO
+                SE  5 = 3 + 2 ENTAO
+                    SE 8 = 4 + 4 ENTAO
+                        2000
+                    SENAO
+                        0
+                SENAO
+                    0
+            SENAO
+                0";
         var expected = 2000;
         var input = GetInput(expression);
 
         //Act
-        var result = await _sut.Execute(input);
+        var result = await _sut.ExecuteAsync(input);
 
         //Assert
         result.Value.Should().Be(expected);
+    }
+    
+    [Fact]
+    public async Task ShouldExecuteFunctionRandomExpression()
+    {
+        //Arrange
+        var input = GetInput("Randomico(4)");
+        var expected = new[] { 0, 1, 2, 3 };
+
+        //Act
+        var result = await _sut.ExecuteAsync(input);
+
+        //Assert
+        result.Value.Should()
+            .Match<int>(value => expected.Contains(value));
     }
 
     [Theory]
@@ -132,18 +153,20 @@ public class ExecuteExpressionTests
         var input = GetInput(expression);
 
         //Act
-        var result = await _sut.Execute(input);
+        var result = await _sut.ExecuteAsync(input);
 
         //Assert
         result.Value.Should().Be(expected);
     }
+    
 
     private static object[] GetDateData() => new object[]
     {
-        new object[] {@"SE 06/10/2011 > 05/10/2010 ENTAO
-                            1
-                        SENAO
-                            0", 1},
+        new object[] {@"
+            SE 06/10/2011 > 05/10/2010 ENTAO
+                1
+            SENAO
+                0", 1},
 
         // new object[] {@"06/10/2011 - 05/10/2010", 366},
 
@@ -151,35 +174,33 @@ public class ExecuteExpressionTests
         //                 OU 06.10.2011 - 05.10.2010 - 1 = 365 ENTAO
         //                     1
         //                 SENAO
-        //                     2", 1}
+        // 
     };
 
-    [Fact]
-    public async Task ShouldExecuteEmptyExpressions()
-    {
-        //Arrange
-        var input = GetInput(string.Empty);
+    // [Theory]
+    // [MemberData(nameof(GetVariableData))]
+    // public async Task ShouldExecuteVariableExpressions(string expression, decimal expected)
+    // {
+    //     //Arrange
+    //     var input = GetInput(expression);
 
-        //Act
-        var result = await _sut.Execute(input);
+    //     //Act
+    //     var result = await _sut.ExecuteAsync(input);
 
-        //Assert
-        result.Value.Should().BeNull();
-    }
+    //     //Assert
+    //     result.Value.Should().Be(expected);
+    // }
 
-    [Fact]
-    public async Task ShouldExecuteFunctionRandomExpression()
-    {
-        //Arrange
-        var input = GetInput("Randomico(4)");
-        var expected = new[] { 0, 1, 2, 3 };
-
-        //Act
-        var result = await _sut.Execute(input);
-
-        //Assert
-        result.Value.Should()
-            .Match<int>(value => expected.Contains(value));
-    }
+    // private static object[] GetVariableData() => new object[]
+    // {
+    //     new object[] {@"
+    //         X = 1
+    //         Y = 2
+    //         X + Y", 3}
+    //         // SE X > 0 ENTAO
+    //         //     1
+    //         // SENAO
+    //         //     0", 1}
+    // };
 
 }

@@ -4,5 +4,5 @@ namespace Application.UseCases.ExecuteExpression.Abstractions;
 
 public interface IExecuteExpressionUseCase
 {
-    Task<ExpressionOutput> Execute(ExpressionInput input);
+    Task<ExpressionOutput> ExecuteAsync(ExpressionInput input);
 }
