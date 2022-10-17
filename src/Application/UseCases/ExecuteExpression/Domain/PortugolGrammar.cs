@@ -1,9 +1,9 @@
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Application.Commons.Portugol.AstNodes;
+using Application.UseCases.ExecuteExpression.Domain.AstNodes;
 
-namespace Application.Commons.PortugolLanguage;
+namespace Application.UseCases.ExecuteExpression.Domain;
 
 public class PortugolGrammar : InterpretedLanguageGrammar
 {
